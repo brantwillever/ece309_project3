@@ -1,7 +1,6 @@
 // src/tools/tool_registry.cpp — YOU IMPLEMENT (spec §4.3).
 //
 // A hand-written hash table. No std::unordered_map / std::map / std::set.
-// Every function below is a stub so the starter compiles. Replace each body.
 
 #include "tools/tool_registry.h"
 
