@@ -22,14 +22,26 @@ bool ToolRegistry::add(std::unique_ptr<Tool> tool) {
     }
 
     const std::string name = tool->name();
-    auto& bucket = buckets_[hash(name) % buckets_.size()];
-    for (const auto& existing : bucket) {
+    const std::size_t bucket_index = hash(name) % buckets_.size();
+    for (const auto& existing : buckets_[bucket_index]) {
         if (existing->name() == name) {
             return false;
         }
     }
 
-    bucket.push_back(std::move(tool));
+    if (size_ + 1 > buckets_.size()) {
+        std::vector<std::vector<std::unique_ptr<Tool>>> new_buckets(buckets_.size() * 2);
+        for (auto& bucket : buckets_) {
+            for (auto& existing : bucket) {
+                const std::size_t new_index = hash(existing->name()) % new_buckets.size();
+                new_buckets[new_index].push_back(std::move(existing));
+            }
+        }
+        buckets_.swap(new_buckets);
+    }
+
+    const std::size_t new_index = hash(name) % buckets_.size();
+    buckets_[new_index].push_back(std::move(tool));
     ++size_;
     return true;
 }
