@@ -4,6 +4,9 @@
 
 #include "tools/tool_registry.h"
 
+#include <string>
+#include <utility>
+
 ToolRegistry::ToolRegistry() : buckets_(16) {}
 ToolRegistry::~ToolRegistry() = default;
 

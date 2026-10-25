@@ -7,6 +7,8 @@
 
 #include "tools/workspace.h"
 
+#include <string>
+
 namespace fs = std::filesystem;
 
 bool Workspace::resolve(std::string_view user_path, fs::path* out,

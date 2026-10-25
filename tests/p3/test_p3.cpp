@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -270,16 +271,98 @@ TEST(calc_division_by_zero) {
     std::string err;
     CHECK(!eval("1 / 0", &v, &err));
     CHECK(err == "division by zero");
+
+    CHECK(!eval("1 / (2 - 2)", &v, &err));
+    CHECK(err == "division by zero");
 }
 
-// ------------------------------------------------------------- your tests
-//
-// Still to write (spec §6 has the full list). Suggested names:
-//   reg_null_rejected, reg_for_each_visits_each_once
-//   reg_10000_tools               REQUIRED: print bucket_count / load_factor /
-//                                 max_probe_length, check the bound
-//   reg_alternative_hash          REQUIRED: longest chain of a weak hash
-//   ws_<case>                     REQUIRED: every row of the table in spec §4.4
-//   calc_<case>                   left-to-right, parentheses, negatives
+TEST(calc_left_to_right) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("10 - 4 - 3", &v, &err));
+    CHECK(v == 3);
+}
+
+TEST(calc_division_left_to_right) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("100 / 10 / 5", &v, &err));
+    CHECK(v == 2);
+}
+
+TEST(calc_parentheses) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("(2 + 3) * 4", &v, &err));
+    CHECK(v == 20);
+}
+
+TEST(calc_worked_expression) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("2 * (3 + 4) - 5", &v, &err));
+    CHECK(v == 9);
+}
+
+TEST(calc_negative_numbers) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("-3 * -3", &v, &err));
+    CHECK(v == 9);
+}
+
+TEST(calc_decimal_numbers) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("7 / 2", &v, &err));
+    CHECK(v == 3.5);
+}
+
+TEST(calc_custom_expressions) {
+    double v = 0;
+    std::string err;
+    REQUIRE(eval("2.5 * (4 - 1.5)", &v, &err));
+    CHECK(v == 6.25);
+    REQUIRE(eval("(8 + 4) / (3 * 2)", &v, &err));
+    CHECK(v == 2);
+}
+
+TEST(calc_long_expression) {
+    std::string expression;
+    expression.reserve(40000);
+    for (int i = 0; i < 20000; ++i) {
+        if (i > 0) {
+            expression += '+';
+        }
+        expression += '1';
+    }
+
+    double v = 0;
+    std::string err;
+    REQUIRE(eval(expression, &v, &err));
+    CHECK(v == 20000);
+}
+
+TEST(calc_deep_parentheses) {
+    std::string expression(5000, '(');
+    expression += '7';
+    expression.append(5000, ')');
+
+    double v = 0;
+    std::string err;
+    REQUIRE(eval(expression, &v, &err));
+    CHECK(v == 7);
+}
+
+TEST(calc_rejects_malformed_tokens) {
+    double v = 0;
+    std::string err;
+    const std::vector<CalcToken> tokens = {
+        {CalcToken::Kind::Plus, 0.0},
+        {CalcToken::Kind::Number, 1.0}
+    };
+    CHECK(!calc_evaluate(tokens, &v, &err));
+    CHECK(!err.empty());
+}
 
 int main(int argc, char** argv) { return mt::run_all(argc, argv); }
